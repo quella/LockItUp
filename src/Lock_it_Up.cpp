@@ -28,10 +28,10 @@ const uint8_t seedPin = A0;                                   // Define pin to g
 // Varibles to tweek outcome of the session, event length, and probibility event is active
 //
 const int MinRandomNumber = 30;                               // Min Random Number in Minutes
-const int MaxRandomNunber = 60;                               // Max Random Number in Minutes (max 240 due to arrays)
-const int EventDurationMin = 10;                              // Min value to have the event occur in Seconds
-const int EventDurationMax = 60;                              // Max value to have the event occur in Seconds
-const int Probability = 40;                                   // Modify the probability an event will be true in percent (0-100) 100 better chance
+const int MaxRandomNunber = 45;                               // Max Random Number in Minutes (max 240 due to arrays)
+const int EventDurationMin = 20;                              // Min value to have the event occur in Seconds
+const int EventDurationMax = 90;                              // Max value to have the event occur in Seconds
+const int Probability = 40;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
 //
 //
 //
@@ -235,7 +235,7 @@ void RelayOn() {                                               // Engage the Rel
   int rannum;                                                  // Temp var to store the PWM random number
   randomSeed(generateRandomSeed());                            // Set Random Number Generator Seed
 
-  rannum = random(5, 1023);                                    // Select a random number for the relay PWN value
+  rannum = random(150, 1000);                                    // Select a random number for the relay PWN value
   analogWrite(RelayPWM, rannum);                               // Write that random value out to the PWM port
   digitalWrite(Relay2, HIGH);                                  // Engage the other non-PWM to high
   digitalWrite(LED2, LOW);                                     // Set Event LED Signal ON
