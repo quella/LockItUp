@@ -20,9 +20,7 @@ Adafruit_SSD1306 display(128, 64, &Wire, -1);                 // Init the OLED d
 const int LED2 = 16;                                          // Assign LED1 to pin GPIO16 (Event on/off)
 const int SPEAKER = D7;                                       // Speaker Output digital Pin D7
 const int Lock1 = D1;                                         // Lock 1 on D1
-// const int Lock2 = D3;                                         // Lock 2 on D2
 const int RelayPWM = D2;                                      // Relay #1 PWM on D3
-// const int Relay2 = D4;                                        // Relay #2 on D4
 const uint8_t seedPin = A0;                                   // Define pin to get RandomSeed from
 //
 // Varibles to tweek outcome of the session, event length, and probibility event is active
@@ -31,7 +29,7 @@ const int MinRandomNumber = 30;                               // Min Random Numb
 const int MaxRandomNunber = 45;                               // Max Random Number in Minutes (max 240 due to arrays)
 const int EventDurationMin = 20;                              // Min value to have the event occur in Seconds
 const int EventDurationMax = 90;                              // Max value to have the event occur in Seconds
-const int Probability = 40;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
+const int Probability = 30;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
 //
 //
 //
@@ -49,6 +47,7 @@ int LockStatus = 0;                                           // LockStatus 0=un
 int MinutesRemaining = 0;                                     // Be able to flash LED when ready to unlock
 int counter = 0;                                              // Loop Counter
 int beeped = 0;                                               // Varible to say if the beep was done.
+int EventPWM = 0;                                             // Varible to store PWM Motor Value
 bool ActiveEvent = false;                                     // Varible if the buzz is activated.
 //
 // setup array to store event data
@@ -64,16 +63,12 @@ void setup() {
   pinMode(LED2, OUTPUT);                                      // Init Onboard LED
   pinMode(SPEAKER, OUTPUT);                                   // Init Speaker Output
   pinMode(Lock1, OUTPUT);                                     // Init Lock 1
-  // pinMode(Lock2, OUTPUT);                                     // Init Lock 2
   pinMode(RelayPWM, OUTPUT);                                  // Init Relay #1
-  // pinMode(Relay2, OUTPUT);                                    // Init Relay #2
-
+ 
   digitalWrite(LED2, HIGH);                                   // Turn Off LED
   digitalWrite(Lock1, LOW);                                   // Disable locks when starting
-  // digitalWrite(Lock2, LOW);                                   // Disable locks when starting
   digitalWrite(RelayPWM, LOW);                                // Disable relay when starting
-  // digitalWrite(Relay2, LOW);                                  // Disable relay when starting
-
+ 
   Serial.begin(9600);                                         // Enable serial logging
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);                  // Init the Display 
@@ -198,8 +193,7 @@ void Lock() {                                                  // FUNCTION to en
   int NumberOfTones = 5;                                       // Set number of tones to play
   int tones[] = {226,247,220,196,196};                         // Tones to play when locked
   digitalWrite(Lock1, HIGH);                                   // Lock1 Locked
-  // digitalWrite(Lock2, HIGH);                                   // Lock2 Locked
-  LockStatus = 1;                                              // Set Locked Status to TRUE (1)
+    LockStatus = 1;                                              // Set Locked Status to TRUE (1)
     for (int i=0; i < NumberOfTones; i++) {                    //
     tone(SPEAKER, tones[i]);                                   // Loop to play scale when locked
     delay(100);                                                //
@@ -222,9 +216,7 @@ void unLock() {                                                // FUNCTION to un
   }
    noTone(SPEAKER);                                            // Once unlocked stop speaker tone
    digitalWrite(Lock1, LOW);                                   // Lock1 Unlocked
-   // digitalWrite(Lock2, LOW);                                   // Lock2 Unlocked
    digitalWrite(LED2, HIGH); 
-   // digitalWrite(Relay2, LOW);
    Serial.println("UNLOCKED");                                 // Print UNLOCKED to serial interface
   return;                                                      // Retun from calling function
 }
@@ -234,10 +226,10 @@ void unLock() {                                                // FUNCTION to un
 void RelayOn() {                                               // Engage the Relay for an active event
   int rannum;                                                  // Temp var to store the PWM random number
   randomSeed(generateRandomSeed());                            // Set Random Number Generator Seed
-
-  rannum = random(150, 1000);                                    // Select a random number for the relay PWN value
+  
+  rannum = random(123, 1023);                                  // Select a random number for the relay PWN value
+  EventPWM = rannum;
   analogWrite(RelayPWM, rannum);                               // Write that random value out to the PWM port
-  // digitalWrite(Relay2, HIGH);                                  // Engage the other non-PWM to high
   digitalWrite(LED2, LOW);                                     // Set Event LED Signal ON
   Serial.println("Relays Active Event");                       // 
   Serial.print("Random PWM = ");                               // Serial print some debug info 
@@ -251,7 +243,6 @@ void RelayOn() {                                               // Engage the Rel
 void RelayOff() {                                              // Function used to turn off the active relay event
   Serial.println("Relays Disengage Event");                    // Serial print some debug details
   digitalWrite(RelayPWM, LOW);                                 // Disengage the two relay pins
-  // digitalWrite(Relay2, LOW);                                   //
   digitalWrite(LED2, HIGH);                                    // Set Event LED Signal OFF
   ActiveEvent = false;                                         // Set active event flag back to FALSE
   return;                                                      // Return from th function
