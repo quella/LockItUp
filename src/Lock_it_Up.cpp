@@ -29,11 +29,11 @@ const int MinRandomNumber = 30;                               // Min Random Numb
 const int MaxRandomNunber = 45;                               // Max Random Number in Minutes (max 240 due to arrays)
 const int EventDurationMin = 20;                              // Min value to have the event occur in Seconds
 const int EventDurationMax = 90;                              // Max value to have the event occur in Seconds
-const int Probability = 30;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
+const int Probability = 90;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
 //
 //
 //
-unsigned long EventStartDelay = 180000;                       // 3 miniute delay in Milliseconds
+unsigned long EventStartDelay = 60000;                        // 1 miniute delay in Milliseconds
 unsigned long MaxEventNumber = 120000;                        // 2 minute event MAX minus a few Milliseconds
 unsigned long LockTimer = 60000;                              // LockTime in Milliseconds
 unsigned long DeviceStartTime;                                // Mills value at start of locking
@@ -54,12 +54,14 @@ bool ActiveEvent = false;                                     // Varible if the 
 //
 unsigned long EventTimeArray[120];                            // An array to store the millis of the different events
 int EventDurationArray[120];                                  // An array to store the duration of the event in Seconds
+int EventPowerArray[120];                                     // An array to store the motor power level (0=Low, 1=Med, 2=High)
 bool EventEnabledArray[120];                                  // An array to store if an event is true or not
 //
 // Start Setup Loop
 //
 void setup() {                                                
   Wire.begin(14,12);                                          // Change I2C pins to D5 / D6
+  analogWriteRange(1023);                                     // Set Motor Range between 0-1023
   pinMode(LED2, OUTPUT);                                      // Init Onboard LED
   pinMode(SPEAKER, OUTPUT);                                   // Init Speaker Output
   pinMode(Lock1, OUTPUT);                                     // Init Lock 1
@@ -101,6 +103,7 @@ void setup() {
       EventEnabledArray[counter] = true;                       // If the event is TRUE (Active) mark it in the array
       randomSeed(generateRandomSeed());                        // Set Random Number Generator Seed
       EventDurationArray[counter] = random(EventDurationMin,EventDurationMax);  // If event true, select a random time on it being on (variiales)
+      EventPowerArray[counter] = random(3);
     }
    
     Serial.print(counter);                                     //
@@ -109,7 +112,9 @@ void setup() {
     Serial.print(" : ");                                       // DEBUG Serial Output Can Be removed when done
     Serial.print(EventEnabledArray[counter]);                  //
     Serial.print(" : ");                                       //
-    Serial.println(EventDurationArray[counter]);               //
+    Serial.print(EventDurationArray[counter]);                 //
+    Serial.print(" : ");
+    Serial.println(EventPowerArray[counter]);
   }
  
   Lock();                                                      // Ater all SetUp Process, Start the Lock process
@@ -224,16 +229,25 @@ void unLock() {                                                // FUNCTION to un
 // Event On (enable relay)
 //
 void RelayOn() {                                               // Engage the Relay for an active event
-  int rannum;                                                  // Temp var to store the PWM random number
-  randomSeed(generateRandomSeed());                            // Set Random Number Generator Seed
   
-  rannum = random(123, 1023);                                  // Select a random number for the relay PWN value
-  EventPWM = rannum;
-  analogWrite(RelayPWM, rannum);                               // Write that random value out to the PWM port
+    if (!ActiveEvent) {
+    analogWrite(RelayPWM, 1023);                              // Start the motor primmed at high speed
+    delay(100);
+  }
+  if (EventPowerArray[CurrentEvent] == 0) {
+    EventPWM = 500;
+  } 
+  if (EventPowerArray[CurrentEvent] == 1) {
+    EventPWM = 700; 
+  }
+  if (EventPowerArray[CurrentEvent] == 2) {
+    EventPWM = 1023;
+  }
+  analogWrite(RelayPWM, EventPWM);                               // Write that random value out to the PWM port
   digitalWrite(LED2, LOW);                                     // Set Event LED Signal ON
   Serial.println("Relays Active Event");                       // 
   Serial.print("Random PWM = ");                               // Serial print some debug info 
-  Serial.println(rannum);                                      //
+  Serial.println(EventPWM);                                      //
   ActiveEvent = true;                                          // Set the active event value to TRUE
   return;                                                      // Return fromt he calling function
 }
