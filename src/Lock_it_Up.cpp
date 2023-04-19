@@ -29,7 +29,7 @@ const int MinRandomNumber = 30;                               // Min Random Numb
 const int MaxRandomNunber = 45;                               // Max Random Number in Minutes (max 240 due to arrays)
 const int EventDurationMin = 20;                              // Min value to have the event occur in Seconds
 const int EventDurationMax = 90;                              // Max value to have the event occur in Seconds
-const int Probability = 90;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
+const int Probability = 50;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
 //
 //
 //
@@ -113,8 +113,8 @@ void setup() {
     Serial.print(EventEnabledArray[counter]);                  //
     Serial.print(" : ");                                       //
     Serial.print(EventDurationArray[counter]);                 //
-    Serial.print(" : ");
-    Serial.println(EventPowerArray[counter]);
+    Serial.print(" : ");                                       //
+    Serial.println(EventPowerArray[counter]);                  //
   }
  
   Lock();                                                      // Ater all SetUp Process, Start the Lock process
@@ -142,16 +142,26 @@ void loop() {                                                  // Enter MAIN LOO
       display.setTextSize(1);                                  // Text size set smaller 
       display.setCursor(0, 34);                                // Move the cursor to a new location
       display.print("Active  ");                               // Print ACTIVE to display
+      display.setCursor(0, 45);                                // Set the new cursor position
+      if (EventPowerArray[CurrentEvent-1] == 0) {              // If the value in EventPowerArray is 0 print Low
+        display.print("Low");                                  // Write Low to the display
+      } else if (EventPowerArray[CurrentEvent-1] == 1) {       // If the value in EventPowerArray is 1 print Medium
+        display.print("Medium");                               // Write Medium to the display
+      } else if (EventPowerArray[CurrentEvent-1] == 2) {       // If the value in EventPowerArray is 2 print High
+        display.print("High");                                 // Write High to the display
+      }
     } else {
       display.setTextSize(1);                                  // Set text size smaller
       display.setCursor(0, 34);                                // Move the cursor to a new locaiton
       display.print("InActive");                               // Print INACTIVE to display
+      display.setCursor(0, 45);                                // Set cursor position
+      display.print("         ");                              // Print spaces over any previous text
     }
-      if (millis() < EventTimeArray[0]) {                      // If in the Start Delay Period print below
+    if (millis() < EventTimeArray[0]) {                        // If in the Start Delay Period print below
       display.setTextSize(1);                                  // Set text size to small
       display.setCursor(0, 45);                                // Move the cursor to print location
       display.print("Delay: ");                                // Print the word DELAY to display
-       display.setCursor(40, 45);                              // Move the cursor to a new location
+      display.setCursor(40, 45);                               // Move the cursor to a new location
       display.print((EventTimeArray[0]-millis())/1000);        // Display the delay remaining in Seconds
     } else {                                                   // If past the DELAY time, do the following
       display.setTextSize(1);                                  // Set text size to small
@@ -198,7 +208,7 @@ void Lock() {                                                  // FUNCTION to en
   int NumberOfTones = 5;                                       // Set number of tones to play
   int tones[] = {226,247,220,196,196};                         // Tones to play when locked
   digitalWrite(Lock1, HIGH);                                   // Lock1 Locked
-    LockStatus = 1;                                              // Set Locked Status to TRUE (1)
+    LockStatus = 1;                                            // Set Locked Status to TRUE (1)
     for (int i=0; i < NumberOfTones; i++) {                    //
     tone(SPEAKER, tones[i]);                                   // Loop to play scale when locked
     delay(100);                                                //
@@ -221,7 +231,7 @@ void unLock() {                                                // FUNCTION to un
   }
    noTone(SPEAKER);                                            // Once unlocked stop speaker tone
    digitalWrite(Lock1, LOW);                                   // Lock1 Unlocked
-   digitalWrite(LED2, HIGH); 
+   digitalWrite(LED2, HIGH);                                   // Set Onboard LED High to signal an event
    Serial.println("UNLOCKED");                                 // Print UNLOCKED to serial interface
   return;                                                      // Retun from calling function
 }
@@ -230,24 +240,22 @@ void unLock() {                                                // FUNCTION to un
 //
 void RelayOn() {                                               // Engage the Relay for an active event
   
-    if (!ActiveEvent) {
-    analogWrite(RelayPWM, 1023);                              // Start the motor primmed at high speed
-    delay(100);
+  if (!ActiveEvent) {
+    analogWrite(RelayPWM, 1023);                               // Start the motor primmed at high speed
+    delay(100);                                                // Delay for 10ms to get the motors to speed
   }
-  if (EventPowerArray[CurrentEvent] == 0) {
+  if (EventPowerArray[CurrentEvent] == 0) {                    // If the stored array value is 0 then PWM = 500 (Low)
     EventPWM = 500;
-  } 
-  if (EventPowerArray[CurrentEvent] == 1) {
+  } else if (EventPowerArray[CurrentEvent] == 1) {             // If the stored array value is 0 then PWM = 700 (Med)
     EventPWM = 700; 
-  }
-  if (EventPowerArray[CurrentEvent] == 2) {
+  } else if (EventPowerArray[CurrentEvent] == 2) {             // If the stored array value is 0 then PWM = 500 (High)
     EventPWM = 1023;
   }
-  analogWrite(RelayPWM, EventPWM);                               // Write that random value out to the PWM port
+  analogWrite(RelayPWM, EventPWM);                             // Write that random value out to the PWM port
   digitalWrite(LED2, LOW);                                     // Set Event LED Signal ON
   Serial.println("Relays Active Event");                       // 
   Serial.print("Random PWM = ");                               // Serial print some debug info 
-  Serial.println(EventPWM);                                      //
+  Serial.println(EventPWM);                                    //
   ActiveEvent = true;                                          // Set the active event value to TRUE
   return;                                                      // Return fromt he calling function
 }
