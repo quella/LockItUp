@@ -7,8 +7,11 @@ low power requirements; 5v for motors and 3.3v for the MCU.   There is also a bu
 delay function that allows the user to prepare for the events without one triggering while
 setting up.  
 
+<<<<<<< HEAD
 The initial project was started in the Arduino IDE and ported over to VSCode and PlatformIO
 
+=======
+>>>>>>> 07526618acea68def0379644c605cf502a563b30
 Many of the main variables are configurable so the user can change:
  - Delay Start
  - Total time locked (Min/Max)
