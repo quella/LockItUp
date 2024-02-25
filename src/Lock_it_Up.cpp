@@ -25,11 +25,11 @@ const uint8_t seedPin = A0;                                   // Define pin to g
 //
 // Varibles to tweek outcome of the session, event length, and probibility event is active
 //
-const int MinRandomNumber = 30;                               // Min Random Number in Minutes
-const int MaxRandomNunber = 45;                               // Max Random Number in Minutes (max 240 due to arrays)
-const int EventDurationMin = 20;                              // Min value to have the event occur in Seconds
-const int EventDurationMax = 60;                              // Max value to have the event occur in Seconds
-const int Probability = 50;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
+const int MinRandomNumber = 60;                               // Min Random Number in Minutes
+const int MaxRandomNunber = 198;                              // Max Random Number in Minutes (max 240 due to arrays)
+const int EventDurationMin = 10;                              // Min value to have the event occur in Seconds
+const int EventDurationMax = 110;                             // Max value to have the event occur in Seconds
+const int Probability = 40;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
 //
 //
 //
