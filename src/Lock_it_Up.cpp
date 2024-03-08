@@ -15,9 +15,10 @@ uint32_t generateRandomSeed();                                // Declare Random 
 
 Adafruit_SSD1306 display(128, 64, &Wire, -1);                 // Init the OLED display 
 //
-// Define Varibles
+// Define GPIO Pins
+// NOTE: GPIO D5 and D6 are additionally used for I2C communicatioins for the OLED Screen
 //
-const int LED2 = 16;                                          // Assign LED1 to pin GPIO16 (Event on/off)
+const int LED2 = 16;                                          // Assign LED1 to pin GPIO16 (Event on/off) GPIO: D0
 const int SPEAKER = D7;                                       // Speaker Output digital Pin D7
 const int Lock1 = D1;                                         // Lock 1 on D1
 const int RelayPWM = D2;                                      // Relay #1 PWM on D3
@@ -25,11 +26,11 @@ const uint8_t seedPin = A0;                                   // Define pin to g
 //
 // Varibles to tweek outcome of the session, event length, and probibility event is active
 //
-const int MinRandomNumber = 60;                               // Min Random Number in Minutes
-const int MaxRandomNunber = 198;                              // Max Random Number in Minutes (max 240 due to arrays)
-const int EventDurationMin = 10;                              // Min value to have the event occur in Seconds
-const int EventDurationMax = 110;                             // Max value to have the event occur in Seconds
-const int Probability = 40;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
+const int MinRandomNumber = 45;                               // Min Random Number in Minutes
+const int MaxRandomNunber = 180;                              // Max Random Number in Minutes (max 240 due to arrays)
+const int EventDurationMin = 5;                               // Min value to have the event occur in Seconds
+const int EventDurationMax = 90;                              // Max value to have the event occur in Seconds
+const int Probability = 35;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
 //
 //
 //
@@ -37,6 +38,8 @@ unsigned long EventStartDelay = 60000;                        // 1 miniute delay
 unsigned long MaxEventNumber = 120000;                        // 2 minute event MAX minus a few Milliseconds
 unsigned long LockTimer = 60000;                              // LockTime in Milliseconds
 unsigned long DeviceStartTime;                                // Mills value at start of locking
+
+unsigned int temp;
 
 int CurrentEvent = 0;                                         // Store the current event number
 int EventProbability = 0;                                     // Temp Store the events probability 
@@ -85,7 +88,7 @@ void setup() {
   
   DeviceStartTime = millis();                                 // This is the time the device started up in Milliseconds 
 //
-// Loop and populate the events, duration, and true/false details
+// Loop and populate the events, duration, true/false and power level details
 //
   NumberOfEvents = ((MinuteTimer-(EventStartDelay/60000)) / (MaxEventNumber/60000));  // Calculate the number of total events during the lock event
   Serial.print("Number of Events: ");                          //
@@ -103,7 +106,18 @@ void setup() {
       EventEnabledArray[counter] = true;                       // If the event is TRUE (Active) mark it in the array
       randomSeed(generateRandomSeed());                        // Set Random Number Generator Seed
       EventDurationArray[counter] = random(EventDurationMin,EventDurationMax);  // If event true, select a random time on it being on (variiales)
-      EventPowerArray[counter] = random(3);
+      
+                                                               // Randomly weighted set Power Level from 0=Low to 2=High
+      temp=random(1000);                                       // Set a random number from 1 - 100 for probability of power 
+      if (temp >= 900) {                                       // Set High to 10% (900-1000) values
+        EventPowerArray[counter] = 2;                          // Set power varible to 2 for HIGH
+      }
+      else if (temp < 600) {                                   // Set Low to 60% (0-600) values
+        EventPowerArray[counter] = 0;                          // Set power varible to 0 for LOW
+      }
+      else {                                                   // Set Low to 30% (601-899) values
+        EventPowerArray[counter] = 1;                          // Set power varible to 1 for MED
+      }                   
     }
    
     Serial.print(counter);                                     //
