@@ -30,11 +30,11 @@ const int MinRandomNumber = 45;                               // Min Random Numb
 const int MaxRandomNunber = 180;                              // Max Random Number in Minutes (max 240 due to arrays)
 const int EventDurationMin = 5;                               // Min value to have the event occur in Seconds
 const int EventDurationMax = 90;                              // Max value to have the event occur in Seconds
-const int Probability = 35;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
+const int Probability = 30;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
 //
 //
 //
-unsigned long EventStartDelay = 60000;                        // 1 miniute delay in Milliseconds
+unsigned long EventStartDelay = 120000;                       // 2 miniute delay in Milliseconds
 unsigned long MaxEventNumber = 120000;                        // 2 minute event MAX minus a few Milliseconds
 unsigned long LockTimer = 60000;                              // LockTime in Milliseconds
 unsigned long DeviceStartTime;                                // Mills value at start of locking
@@ -106,8 +106,10 @@ void setup() {
       EventEnabledArray[counter] = true;                       // If the event is TRUE (Active) mark it in the array
       randomSeed(generateRandomSeed());                        // Set Random Number Generator Seed
       EventDurationArray[counter] = random(EventDurationMin,EventDurationMax);  // If event true, select a random time on it being on (variiales)
-      
-                                                               // Randomly weighted set Power Level from 0=Low to 2=High
+//
+// Randomly weighted set Power Level from 0=Low to 2=High
+//
+      randomSeed(generateRandomSeed());                        // Set random seed each time through for better numbers
       temp=random(1000);                                       // Set a random number from 1 - 100 for probability of power 
       if (temp >= 900) {                                       // Set High to 10% (900-1000) values
         EventPowerArray[counter] = 2;                          // Set power varible to 2 for HIGH
@@ -119,7 +121,9 @@ void setup() {
         EventPowerArray[counter] = 1;                          // Set power varible to 1 for MED
       }                   
     }
-   
+//
+// Dump Debug data to serial output
+//
     Serial.print(counter);                                     //
     Serial.print(": ");                                        //
     Serial.print(EventTimeArray[counter]);                     //
@@ -164,12 +168,16 @@ void loop() {                                                  // Enter MAIN LOO
       } else if (EventPowerArray[CurrentEvent-1] == 2) {       // If the value in EventPowerArray is 2 print High
         display.print("High");                                 // Write High to the display
       }
+      display.setCursor(45, 34);                               // Set the new cursor position
+      display.print(((EventTimeArray[CurrentEvent-1]+(EventDurationArray[CurrentEvent-1]*1000))-millis())/1000); // Display the seconds remaining in event
     } else {
       display.setTextSize(1);                                  // Set text size smaller
       display.setCursor(0, 34);                                // Move the cursor to a new locaiton
       display.print("InActive");                               // Print INACTIVE to display
       display.setCursor(0, 45);                                // Set cursor position
       display.print("         ");                              // Print spaces over any previous text
+      display.setCursor(45, 34);                               // Set cursor position
+      display.print("         ");                              // Clear Timer of the event in seconds
     }
     if (millis() < EventTimeArray[0]) {                        // If in the Start Delay Period print below
       display.setTextSize(1);                                  // Set text size to small
@@ -198,7 +206,6 @@ void loop() {                                                  // Enter MAIN LOO
   if ((MinutesRemaining <= 5) && (MinutesRemaining > 1) && (LockStatus == 1)) {  // If the minutes remaining is 5 Flash the Onboard LED SLOW
     FlashLED(1000);                                            // Call flash routine
   }
-  
   if ((millis() >= LockTimer) && (LockStatus == 1)) {          // If the Lock Timer runs out AND the lock is locked, call unlock Function
     unLock();
   }
@@ -212,9 +219,9 @@ void loop() {                                                  // Enter MAIN LOO
 //
 // END of Main Loop Function
 //
-
-// Below are functons called by the program
-
+//
+// NOTE: Below are functons called by the program
+//
 //
 // Engage the locks and return
 //
@@ -260,9 +267,9 @@ void RelayOn() {                                               // Engage the Rel
   }
   if (EventPowerArray[CurrentEvent] == 0) {                    // If the stored array value is 0 then PWM = 500 (Low)
     EventPWM = 500;
-  } else if (EventPowerArray[CurrentEvent] == 1) {             // If the stored array value is 0 then PWM = 700 (Med)
+  } else if (EventPowerArray[CurrentEvent] == 1) {             // If the stored array value is 1 then PWM = 700 (Med)
     EventPWM = 700; 
-  } else if (EventPowerArray[CurrentEvent] == 2) {             // If the stored array value is 0 then PWM = 500 (High)
+  } else if (EventPowerArray[CurrentEvent] == 2) {             // If the stored array value is 2 then PWM = 1023 (High)
     EventPWM = 1023;
   }
   analogWrite(RelayPWM, EventPWM);                             // Write that random value out to the PWM port
