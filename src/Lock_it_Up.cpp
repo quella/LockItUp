@@ -30,7 +30,7 @@ const int MinRandomNumber = 45;                               // Min Random Numb
 const int MaxRandomNunber = 180;                              // Max Random Number in Minutes (max 240 due to arrays)
 const int EventDurationMin = 5;                               // Min value to have the event occur in Seconds
 const int EventDurationMax = 90;                              // Max value to have the event occur in Seconds
-const int Probability = 30;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
+const int Probability = 35;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
 //
 //
 //
@@ -48,6 +48,8 @@ int EventCounter = 0;                                         // This is to keep
 int MinuteTimer = 10;                                         // LockTime in Minutes
 int LockStatus = 0;                                           // LockStatus 0=unlocked 1=locked
 int MinutesRemaining = 0;                                     // Be able to flash LED when ready to unlock
+int DisplayHours = 0;                                         // User to display remaining Hours (from MinutesRemaining)
+int DisplayMinutes = 0;                                       // Used to display remaining Munutes (from MinutesRemaining)
 int counter = 0;                                              // Loop Counter
 int beeped = 0;                                               // Varible to say if the beep was done.
 int EventPWM = 0;                                             // Varible to store PWM Motor Value
@@ -111,13 +113,13 @@ void setup() {
 //
       randomSeed(generateRandomSeed());                        // Set random seed each time through for better numbers
       temp=random(1000);                                       // Set a random number from 1 - 100 for probability of power 
-      if (temp >= 900) {                                       // Set High to 10% (900-1000) values
+      if (temp >= 950) {                                       // Set High to 5% (950-1000) values
         EventPowerArray[counter] = 2;                          // Set power varible to 2 for HIGH
       }
-      else if (temp < 600) {                                   // Set Low to 60% (0-600) values
+      else if (temp < 700) {                                   // Set Low to 70% (0-700) values
         EventPowerArray[counter] = 0;                          // Set power varible to 0 for LOW
       }
-      else {                                                   // Set Low to 30% (601-899) values
+      else {                                                   // Set Low to 25% (701-950) values
         EventPowerArray[counter] = 1;                          // Set power varible to 1 for MED
       }                   
     }
@@ -143,7 +145,9 @@ void setup() {
 void loop() {                                                  // Enter MAIN LOOP Function
  
   MinutesRemaining = ((LockTimer - millis())/60000+1);         // Calculate and store the Minutes locked remaining
-  
+  DisplayHours = MinutesRemaining / 60;                        // Convert MinutesRemaining to Hours for Display
+  DisplayMinutes = MinutesRemaining % 60;                      // Convert MinutesRemaining to Minutes for Display
+
   display.clearDisplay();                                      // Clear the display in the loop
   
   if (LockStatus == 1) {                                       // If LockStatus is 1 display LOCKED message
@@ -152,10 +156,12 @@ void loop() {                                                  // Enter MAIN LOO
     display.print("LOCKED  ");                                 // Print "LOCKED" to OLED
     display.setTextSize(2);                                    // Setup Minutes Remaining Message
     display.setTextColor(WHITE);                               // Set text color to WHITE
-    display.setCursor(0, 16);                                  // Move cursor to next area to print
-    display.print("Remain: ");                                 // Print the text on the display
-    display.setCursor(82, 16);                                 // Move cursor to the place for minutes locked
-    display.print(MinutesRemaining);                           // Print to the display the lock minutes remaining
+    display.setCursor(60, 16);                                 // Move cursor to next area to print
+    display.print("Left");                                     // Print the text on the display
+    display.setCursor(0, 16);                                  // Move cursor to the place for minutes locked
+    display.print(DisplayHours);                               // Print to the display the lock hours remaining
+    display.print(":");                                        // Display a : (colon) between the houns and minutes
+    display.print(DisplayMinutes);                             // Print to the display the lock minutes remaining
     if (ActiveEvent) {                                         // If it is an ActiveEvent print the following
       display.setTextSize(1);                                  // Text size set smaller 
       display.setCursor(0, 34);                                // Move the cursor to a new location
@@ -169,7 +175,7 @@ void loop() {                                                  // Enter MAIN LOO
         display.print("High");                                 // Write High to the display
       }
       display.setCursor(45, 34);                               // Set the new cursor position
-      display.print(((EventTimeArray[CurrentEvent-1]+(EventDurationArray[CurrentEvent-1]*1000))-millis())/1000); // Display the seconds remaining in event
+      display.print((((EventTimeArray[CurrentEvent-1]+(EventDurationArray[CurrentEvent-1]*1000))-millis())/1000)+1); // Display the seconds remaining in event
     } else {
       display.setTextSize(1);                                  // Set text size smaller
       display.setCursor(0, 34);                                // Move the cursor to a new locaiton
