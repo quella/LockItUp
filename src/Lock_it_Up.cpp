@@ -30,7 +30,7 @@ const int MinRandomNumber = 45;                               // Min Random Numb
 const int MaxRandomNunber = 180;                              // Max Random Number in Minutes (max 240 due to arrays)
 const int EventDurationMin = 5;                               // Min value to have the event occur in Seconds
 const int EventDurationMax = 90;                              // Max value to have the event occur in Seconds
-const int Probability = 35;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
+const int Probability = 45;                                   // Modify the probability an event will be true in percent (%0-%100) Higher number better chance
 //
 //
 //
@@ -137,7 +137,7 @@ void setup() {
     Serial.println(EventPowerArray[counter]);                  //
   }
  
-  Lock();                                                      // Ater all SetUp Process, Start the Lock process
+  Lock();                                                      // After all SetUp Process, Start the Lock process
 }
 //
 // The loop function runs forever
@@ -161,6 +161,9 @@ void loop() {                                                  // Enter MAIN LOO
     display.setCursor(0, 16);                                  // Move cursor to the place for minutes locked
     display.print(DisplayHours);                               // Print to the display the lock hours remaining
     display.print(":");                                        // Display a : (colon) between the houns and minutes
+    if (DisplayMinutes < 10) {
+      display.print("0");
+    }
     display.print(DisplayMinutes);                             // Print to the display the lock minutes remaining
     if (ActiveEvent) {                                         // If it is an ActiveEvent print the following
       display.setTextSize(1);                                  // Text size set smaller 
